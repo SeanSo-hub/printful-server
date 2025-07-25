@@ -1,20 +1,20 @@
 export default async function handler(req, res) {
   const allowedOrigin = "https://gue12v-0i.myshopify.com";
 
-  // ✅ Set CORS headers
+  // ✅ Always set CORS headers
   res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Max-Age", "86400");
 
-  // ✅ Handle preflight (OPTIONS)
+  // ✅ Handle preflight requests properly
   if (req.method === "OPTIONS") {
-    return res.status(200).end();
+    return res.status(200).end(); // CORS preflight pass
   }
 
-  // ✅ Only allow POST after preflight
+  // ✅ Only allow POST
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Method Not Allowed" });
   }
 
   const { variant_id } = req.body;
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(
+    const printfulRes = await fetch(
       "https://api.printful.com/design-maker/token",
       {
         method: "POST",
@@ -36,18 +36,18 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
+    const data = await printfulRes.json();
 
-    if (!response.ok) {
-      console.error("Printful error:", data);
+    if (!printfulRes.ok) {
+      console.error("Printful Error:", data);
       return res
-        .status(response.status)
+        .status(printfulRes.status)
         .json({ error: data.error || "Token fetch failed" });
     }
 
     return res.status(200).json({ token: data.result.token });
   } catch (error) {
-    console.error("Internal Server Error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error("Server Error:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
