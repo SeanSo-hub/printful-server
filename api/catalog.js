@@ -1,5 +1,6 @@
 // api/catalog.js
 import axios from "axios";
+import cors from "cors";
 
 export default async function handler(req, res) {
   const PRINTFUL_API_KEY =
