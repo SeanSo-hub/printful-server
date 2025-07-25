@@ -1,53 +1,63 @@
+// api/printful/nonce.js (or similar for your framework)
+// For Express.js, this would be a route handler: router.post('/api/printful/nonce', async (req, res) => { ... });
+
+import fetch from "node-fetch"; // If using Node.js without a fetch polyfill or in older versions
+
 export default async function handler(req, res) {
-  const allowedOrigin = "https://gue12v-0i.myshopify.com";
-
-  // ✅ Always set CORS headers
-  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Max-Age", "86400");
-
-  // ✅ Handle preflight requests properly
-  if (req.method === "OPTIONS") {
-    return res.status(200).end(); // CORS preflight pass
-  }
-
-  // ✅ Only allow POST
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method Not Allowed" });
+    return res.status(405).json({ message: "Method Not Allowed" });
   }
 
-  const { variant_id } = req.body;
+  const printfulApiKey = "DmzFX6WgYrQQzdnSGomt6JHBmYpir9chwVLdOeS3";
+  const { externalProductId } = req.body; // If you pass externalProductId from frontend
 
-  if (!variant_id) {
-    return res.status(400).json({ error: "Missing variant_id" });
+  if (!printfulApiKey) {
+    return res
+      .status(500)
+      .json({ message: "Printful API Key not configured." });
+  }
+
+  if (!externalProductId) {
+    // externalProductId is required by Printful for nonce generation if creating a new template
+    return res.status(400).json({ message: "externalProductId is required." });
   }
 
   try {
-    const printfulRes = await fetch(
-      "https://customizer-app-backend.vercel.app/api/printful/design-maker/token",
+    const response = await fetch(
+      "https://api.printful.com/embedded-designer/nonces",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.PRINTFUL_API_KEY}`,
+          Authorization: `Bearer ${printfulApiKey}`, // Use your Printful API Key
         },
-        body: JSON.stringify({ variant_id }),
+        body: JSON.stringify({
+          external_product_id: externalProductId, // Pass the product ID from your system
+        }),
       }
     );
 
-    const data = await printfulRes.json();
-
-    if (!printfulRes.ok) {
-      console.error("Printful Error:", data);
-      return res
-        .status(printfulRes.status)
-        .json({ error: data.error || "Token fetch failed" });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Printful API Error:", errorData);
+      throw new Error(
+        `Printful API error: ${response.status} ${response.statusText}`
+      );
     }
 
-    return res.status(200).json({ token: data.result.token });
+    const data = await response.json();
+    const nonce = data.result.nonce; // Extract the nonce from the Printful response
+
+    if (!nonce) {
+      throw new Error("Nonce not found in Printful API response.");
+    }
+
+    res.status(200).json({ nonce: nonce });
   } catch (error) {
-    console.error("Server Error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error generating Printful nonce:", error);
+    res.status(500).json({
+      message: "Failed to generate Printful nonce.",
+      error: error.message,
+    });
   }
 }
