@@ -1,17 +1,18 @@
 export default async function handler(req, res) {
   const allowedOrigin = "https://gue12v-0i.myshopify.com";
 
-  // Set CORS headers
+  // ✅ Set CORS headers
   res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Max-Age", "86400");
 
-  // Handle preflight request
+  // ✅ Handle preflight (OPTIONS)
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  // Check for POST
+  // ✅ Only allow POST after preflight
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ token: data.result.token });
   } catch (error) {
-    console.error("Server error:", error);
-    return res.status(500).json({ error: "Server error" });
+    console.error("Internal Server Error:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
