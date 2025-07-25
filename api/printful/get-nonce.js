@@ -2,8 +2,22 @@
 import fetch from "node-fetch";
 
 export default async function handler(req, res) {
-  // Remove all res.setHeader lines and the OPTIONS handling block here.
+  // It's good practice to ensure these are set even if vercel.json is used,
+  // in case the OPTIONS preflight somehow bypasses vercel.json's full handling
+  // and reaches the function.
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://gue12v-0i.myshopify.com"
+  );
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
+  // Handle preflight OPTIONS request: RETURN 200 OK immediately
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  // Now, check for the expected method
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method Not Allowed" });
   }
@@ -32,12 +46,10 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const errorData = await response.json();
       console.error("Printful Nonce Error:", errorData);
-      return res
-        .status(response.status)
-        .json({
-          message: "Failed to get nonce from Printful",
-          details: errorData,
-        });
+      return res.status(response.status).json({
+        message: "Failed to get nonce from Printful",
+        details: errorData,
+      });
     }
 
     const data = await response.json();
