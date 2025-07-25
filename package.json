@@ -1,9 +1,16 @@
 {
-  "name": "printful-edm-vercel",
+  "name": "printful-server",
   "version": "1.0.0",
+  "description": "Backend for Printful integration",
+  "type": "module", 
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "axios": "^1.11.0",
-    "cors": "^2.8.5",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^2.6.1"
   }
 }
