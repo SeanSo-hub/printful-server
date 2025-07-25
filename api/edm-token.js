@@ -25,7 +25,7 @@ export default async function handler(req, res) {
 
   try {
     const printfulRes = await fetch(
-      "https://api.printful.com/design-maker/token",
+      "https://customizer-app-backend.vercel.app/api/printful/design-maker/token",
       {
         method: "POST",
         headers: {
