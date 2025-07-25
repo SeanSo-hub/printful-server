@@ -1,9 +1,21 @@
 {
-  "version": 2,
-  "builds": [
+  "headers": [
     {
-      "src": "api/edm-token.js",
-      "use": "@vercel/node"
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://gue12v-0i.myshopify.com"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,POST,OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
     }
   ]
 }
